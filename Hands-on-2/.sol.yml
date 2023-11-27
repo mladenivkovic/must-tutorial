@@ -1,0 +1,145 @@
+stages:
+   - build
+   - test
+   - performance
+
+default:
+  tags: ["hpc"]
+
+
+.template:
+   before_script:
+     - module use /pc2/groups/hpc-prf-nhrgs/modules
+     - module load MUST
+      
+build-lulesh:
+   stage: build
+   extends: .template
+   script:
+     - cd Hands-on-2
+     - mkdir build-openmp
+     - cd build-openmp
+     - cmake -DCMAKE_BUILD_TYPE=Release -DWITH_OPENMP=On ..
+     - make 
+     
+   artifacts:
+     paths:
+      - Hands-on-2/build-openmp/lulesh2.0-mpi
+      
+build-tsan-lulesh:
+   stage: build
+   extends: .template
+   script:
+     - cd Hands-on-2
+     - export MUST_ROOT=/pc2/groups/hpc-prf-nhrgs/MUST/install-new
+     - make lulesh2.0-mpi-tsan2
+     
+   artifacts:
+     paths:
+      - Hands-on-2/lulesh2.0-mpi-tsan2
+
+test-must-tsan-lulesh:
+   stage: test
+   
+   extends: .template
+   dependencies: 
+    - build-tsan-lulesh
+
+   variables:
+     OMP_NUM_THREADS: 4
+     SLURM_PARAM_THREADS: "-c 4"
+     SLURM_PARAM_TASKS: "-n 9"
+     SLURM_PARAM_ACCOUNT: "-A hpc-prf-nhrgs"
+
+   script:
+     - cd Hands-on-2
+     - EXIT_CODE=0
+     - export OMP_NUM_THREADS=$OMP_NUM_THREADS
+     - env MUST_FILTER_FILE=./Hands-on-2/filterfile.txt mustrun --must:tsan -np 8 ./lulesh2.0-mpi-tsan2 -i 10 || EXIT_CODE=$?
+     - mv MUST_Output.html MUST_Output.htm
+     - exit $EXIT_CODE
+     
+   artifacts:
+     when: always
+     paths:
+      - Hands-on-2/MUST_Output.htm
+
+
+test-must-lulesh:
+   stage: test
+   
+   extends: .template
+   dependencies: 
+    - build-lulesh
+
+   variables:
+     OMP_NUM_THREADS: 4
+     SLURM_PARAM_THREADS: "-c 4"
+     SLURM_PARAM_TASKS: "-n 9"
+     SLURM_PARAM_ACCOUNT: "-A hpc-prf-nhrgs"
+
+   script:
+     - cd Hands-on-2
+     - EXIT_CODE=0
+     - export OMP_NUM_THREADS=$OMP_NUM_THREADS
+     - env MUST_FILTER_FILE=./Hands-on-2/filterfile.txt mustrun -np 8 ./build-openmp/lulesh2.0-mpi -i 10 || EXIT_CODE=$?
+     - mv MUST_Output.html MUST_Output.htm
+     - exit $EXIT_CODE
+     
+   artifacts:
+     when: always
+     paths:
+      - Hands-on-2/MUST_Output.htm
+
+run-lulesh:
+   stage: performance
+   
+   extends: .template
+   dependencies: 
+    - build-lulesh
+
+   variables:
+     OMP_NUM_THREADS: 4
+     SLURM_PARAM_THREADS: "-c 4"
+     SLURM_PARAM_TASKS: "-n 8"
+     SLURM_PARAM_ACCOUNT: "-A hpc-prf-nhrgs"
+
+   script:
+     - cd Hands-on-2
+     - export OMP_NUM_THREADS=$OMP_NUM_THREADS
+     - mpirun -np 8 ./build-openmp/lulesh2.0-mpi -i 100
+
+build-lulesh-typeart:
+   stage: build
+   extends: .template
+   script:
+     - cd Hands-on-2
+     - WITH_FLOAT=1 MPICXX=typeart-mpic++ make 
+     
+   artifacts:
+     paths:
+      - Hands-on-2/lulesh2.0-mpi
+      
+test-typeart-lulesh:
+   stage: test
+   
+   extends: .template
+   dependencies: 
+    - build-lulesh-typeart
+
+   variables:
+     SLURM_PARAM_TASKS: "-n 9"
+     SLURM_PARAM_ACCOUNT: "-A hpc-prf-nhrgs"
+
+   script:
+     - cd Hands-on-2
+     - EXIT_CODE=0
+     - export OMP_NUM_THREADS=1
+     - env MUST_FILTER_FILE=./Hands-on-2/filterfile.txt mustrun -np 8 --must:typeart ./lulesh2.0-mpi -i 10 || EXIT_CODE=$?
+     - mv MUST_Output.html MUST_Output.htm
+     - exit $EXIT_CODE
+     
+   artifacts:
+     when: always
+     paths:
+      - Hands-on-2/MUST_Output.htm

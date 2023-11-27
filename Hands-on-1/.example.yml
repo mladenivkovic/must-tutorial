@@ -1,0 +1,47 @@
+stages:
+   - build
+   - test
+
+default:
+  tags: ["hpc"]
+
+
+.template:
+   before_script:
+     - module use /pc2/groups/hpc-prf-nhrgs/modules
+     - module load MUST
+      
+build:
+   stage: build
+   extends: .template
+   script:
+     - cd Hands-on-1
+     - module li
+     - mpicc -g -O3 -I. -Wall -o example.exe example.c
+     
+   artifacts:
+     paths:
+      - Hands-on-1/example.exe
+      
+test:
+   stage: test
+   
+   extends: .template
+   dependencies: 
+    - build
+
+   variables:
+     SLURM_PARAM_TASKS: "-n 9"
+     SLURM_PARAM_ACCOUNT: "-A hpc-prf-nhrgs"
+
+   script:
+     - cd Hands-on-1
+     - EXIT_CODE=0
+     - mustrun --must:timeout 90 -np 8 ./example.exe || EXIT_CODE=$?
+     - mv MUST_Output.html MUST_Output.htm
+     - exit $EXIT_CODE
+     
+   artifacts:
+     when: always
+     paths:
+      - Hands-on-1/MUST_Output.htm
