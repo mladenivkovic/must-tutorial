@@ -29,7 +29,7 @@ All TSan output goes to stderr
 
 ## Type checking in MUST
 Recompile Lulesh with TypeART:
-* `MPICXX=typeart-mpic++ make -j4 -B lulesh2.0-mpi`
+* `MPICXX=typeart-mpic++ make -j4 WITH_FLOAT=1 -B lulesh2.0-mpi`
 Execute with TypeART analysis:
 * `OMP_NUM_THREADS=1 mustrun -n 8 --must:typeart --must:output stdout ./lulesh2.0-mpi -i 2`
 

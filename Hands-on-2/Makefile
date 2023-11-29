@@ -24,7 +24,7 @@ OBJECTS2.0-mpi-tsan = $(SOURCES2.0:.cc=.mpi-tsan.o)
 OBJECTS2.0-mpi = $(SOURCES2.0:.cc=.mpi.o)
 
 #Default build suggestions with OpenMP for g++
-CXXFLAGS = -g -O3 -fopenmp -I. -Wall
+CXXFLAGS = -g -O3 -fopenmp -I. -Wall -Wno-reorder-ctor
 LDFLAGS = -g -O3 -fopenmp
 
 ifndef WITH_FLOAT
