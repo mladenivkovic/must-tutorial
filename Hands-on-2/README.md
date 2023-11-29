@@ -19,11 +19,13 @@ Look into the code and try to understand the data race (do not fix them yet)
 
 All TSan output goes to stderr
 
-### Test for DataRace in MUST report
-* `MPICXX=mpigxx make -j4 lulesh2.0-mpi-tsan2`
-* `OMP_NUM_THREADS=2 mustrun -n 8 --must:hybrid --must:tsan ./lulesh2.0-mpi-tsan2 -s 4 -i 2`
-
-TSan output in MUST_Output.html
+// Doesn't currently work on cosma
+//
+// ### Test for DataRace in MUST report
+// * `MPICXX=mpigxx make -j4 lulesh2.0-mpi-tsan2`
+// * `OMP_NUM_THREADS=2 mustrun -n 8 --must:hybrid --must:tsan ./lulesh2.0-mpi-tsan2 -s 4 -i 2`
+// 
+// TSan output in MUST_Output.html
 
 ## Type checking in MUST
 Recompile Lulesh with TypeART:
