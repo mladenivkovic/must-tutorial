@@ -1,0 +1,1 @@
+On Cosma7, you need to load all the modules on the slides, and then unload and re-load clang_comp/13.0.0 again so it works.
